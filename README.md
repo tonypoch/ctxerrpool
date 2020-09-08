@@ -1,5 +1,5 @@
 # ctxerrgroup
-
+[![Go Report Card](https://goreportcard.com/badge/gitlab.com/MicahParks/ctxerrgroup)](https://goreportcard.com/report/gitlab.com/MicahParks/ctxerrgroup)
 Groups of goroutines that understand context.Context and error handling.
 
 # Benefits
