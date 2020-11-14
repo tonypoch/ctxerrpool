@@ -55,9 +55,9 @@ func (g Group) Death() <-chan struct{} {
 }
 
 // AddWorkItem takes in context information and a Work function and gives it to a worker. This can block if all workers
-// are busy and the work item buffer is full. If asyncAdd is true, the function will not block and launch another
-// goroutine to send the work item.
-func (g Group) AddWorkItem(ctx context.Context, cancel context.CancelFunc, asyncAdd bool, work Work) {
+// are busy and the work item buffer is full. This function will block if no workers are ready. Call with the go keyword
+// to launch it in another goroutine to guarantee no blocking.
+func (g Group) AddWorkItem(ctx context.Context, cancel context.CancelFunc, work Work) {
 
 	// Check to make sure the group isn't dead on arrival.
 	if g.Dead() {
@@ -76,11 +76,7 @@ func (g Group) AddWorkItem(ctx context.Context, cancel context.CancelFunc, async
 		work:   work,
 	}
 
-	if asyncAdd {
-		go g.sendWorkItem(ctx, item)
-	} else {
-		g.sendWorkItem(ctx, item) // This will block if no worker is ready and the work item buffer is full.
-	}
+	g.sendWorkItem(ctx, item) // This will block if no worker is ready and the work item buffer is full.
 }
 
 // Dead determines if the group is dead.

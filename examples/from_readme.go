@@ -57,7 +57,7 @@ func main() {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 
 		// Send the work to the group.
-		group.AddWorkItem(ctx, cancel, false, work)
+		group.AddWorkItem(ctx, cancel, work)
 	}
 
 	// Wait for the group to finish.

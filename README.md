@@ -79,7 +79,7 @@ func main() {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 
 		// Send the work to the group.
-		group.AddWorkItem(ctx, cancel, false, work)
+		group.AddWorkItem(ctx, cancel, work)
 	}
 
 	// Wait for the group to finish.
@@ -253,7 +253,7 @@ ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 for i := 0; i < 16; i++ {
 
 	// Send the work to the group.
-	group.AddWorkItem(ctx, cancel, false, work)
+	group.AddWorkItem(ctx, cancel, work)
 }
 ```
 Instead, create the context in the loop and do not shadow a context variable from out of scope.

@@ -47,7 +47,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// Send the work to the group.
-	group.AddWorkItem(ctx, cancel, false, work)
+	group.AddWorkItem(ctx, cancel, work)
 
 	// Wait for the work to start.
 	wg.Wait()
