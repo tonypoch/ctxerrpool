@@ -14,7 +14,7 @@ var (
 )
 
 // Work is a function that utilizes the given context properly and returns an error.
-type Work func(ctx context.Context) (err error)
+type Work func(workCtx context.Context) (err error)
 
 // workItem holds a function to work on and the context for it.
 type workItem struct {
