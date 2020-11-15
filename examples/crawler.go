@@ -55,12 +55,12 @@ func handleHref(httpClient *http.Client, l *log.Logger, match []byte, group ctxe
 	// Tell the worker group to crawl to the next page.
 	//
 	// This is an example of how to create a work function via an anonymous function closure.
-	go group.AddWorkItem(workerCtx, workerCancel, func(internalContext context.Context) error {
+	go group.AddWorkItem(workerCtx, workerCancel, func(workCtx context.Context) error {
 
 		// Do the HTTP request and start crawling. Respect the given context.
 		//
 		// Make sure to use internal context from anonymous function argument.
-		if err := crawl(internalContext, httpClient, l, group, nextU.String()); err != nil {
+		if err := crawl(workCtx, httpClient, l, group, nextU.String()); err != nil {
 			return err
 		}
 

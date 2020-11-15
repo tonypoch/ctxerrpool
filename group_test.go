@@ -58,7 +58,7 @@ func TestDeathDeadOnArrival(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 
 	// Do some work with the pool.
-	pool.AddWorkItem(ctx, cancel, func(internalCtx context.Context) error {
+	pool.AddWorkItem(ctx, cancel, func(workCtx context.Context) error {
 		t.Fail() // This line should never run.
 		return nil
 	})
@@ -93,7 +93,7 @@ func TestDeathDuring(t *testing.T) {
 	workWg.Add(1)
 
 	// Do some work with the pool.
-	pool.AddWorkItem(ctx, cancel, func(internalCtx context.Context) error {
+	pool.AddWorkItem(ctx, cancel, func(workCtx context.Context) error {
 		workWg.Done()
 
 		// Respect given context.
@@ -104,10 +104,10 @@ func TestDeathDuring(t *testing.T) {
 			t.FailNow()
 
 		// Catch the context's cancellation.
-		case <-internalCtx.Done():
+		case <-workCtx.Done():
 
 			// This should be because the context was canceled.
-			if err := internalCtx.Err(); !errors.Is(err, context.Canceled) {
+			if err := workCtx.Err(); !errors.Is(err, context.Canceled) {
 				t.Errorf("An error occurred. Error: %v", err)
 				t.Fail()
 			}
@@ -151,7 +151,7 @@ func TestDone(t *testing.T) {
 	done := false
 
 	// Do some work with the pool.
-	pool.AddWorkItem(ctx, cancel, func(internalCtx context.Context) error {
+	pool.AddWorkItem(ctx, cancel, func(workCtx context.Context) error {
 		mux.Lock()
 		defer mux.Unlock()
 		done = true
@@ -195,7 +195,7 @@ func TestErrCantDo(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*50)
 
 	// Give the worker pool some work that will never get run.
-	pool.AddWorkItem(ctx, cancel, func(internalCtx context.Context) error {
+	pool.AddWorkItem(ctx, cancel, func(workCtx context.Context) error {
 		return nil
 	})
 
@@ -227,7 +227,7 @@ func TestErrCantDoDeadOnArrival(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 0)
 
 	// Get a worker to do some work so the main loop is entered.
-	pool.AddWorkItem(ctx, cancel, func(internalCtx context.Context) error {
+	pool.AddWorkItem(ctx, cancel, func(workCtx context.Context) error {
 		return nil
 	})
 
@@ -259,13 +259,13 @@ func TestErrorTimeout(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*50)
 
 	// Get a worker to sleep for a second, but async wait for its context to expire.
-	pool.AddWorkItem(ctx, cancel, func(internalCtx context.Context) error {
+	pool.AddWorkItem(ctx, cancel, func(workCtx context.Context) error {
 		var err error
 		select {
 		case <-time.After(time.Second):
 			t.FailNow()
-		case <-internalCtx.Done(): // Good case.
-			err = internalCtx.Err()
+		case <-workCtx.Done(): // Good case.
+			err = workCtx.Err()
 		}
 		return err
 	})
@@ -299,7 +299,7 @@ func TestErrorTimeoutBadWork(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*50)
 
 	// Get a worker to sleep for a second.
-	pool.AddWorkItem(ctx, cancel, func(internalCtx context.Context) error {
+	pool.AddWorkItem(ctx, cancel, func(workCtx context.Context) error {
 
 		// Do not respect internal context.
 		select {
@@ -339,13 +339,13 @@ func TestKill(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 
 	// Get a worker to sleep for a second, but async wait for its context to expire.
-	pool.AddWorkItem(ctx, cancel, func(internalCtx context.Context) error {
+	pool.AddWorkItem(ctx, cancel, func(workCtx context.Context) error {
 		var err error
 		select {
 		case <-time.After(time.Second):
 			t.FailNow()
-		case <-internalCtx.Done():
-			err = internalCtx.Err()
+		case <-workCtx.Done():
+			err = workCtx.Err()
 		}
 		return err
 	})
@@ -391,11 +391,11 @@ func TestMultiWorker(t *testing.T) {
 
 	// Get both workers to sleep for 50 millisecond each. If it takes 100 or more milliseconds total, only one worker
 	// was used.
-	pool.AddWorkItem(ctx, cancel, func(internalCtx context.Context) error {
+	pool.AddWorkItem(ctx, cancel, func(workCtx context.Context) error {
 		time.Sleep(time.Millisecond * 50)
 		return nil
 	})
-	pool.AddWorkItem(ctx2, cancel2, func(internalCtx context.Context) error {
+	pool.AddWorkItem(ctx2, cancel2, func(workCtx context.Context) error {
 		time.Sleep(time.Millisecond * 50)
 		return nil
 	})
@@ -433,7 +433,7 @@ func TestNew(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 
 	// Do some work with the pool.
-	pool.AddWorkItem(ctx, cancel, func(internalCtx context.Context) error {
+	pool.AddWorkItem(ctx, cancel, func(workCtx context.Context) error {
 		return nil
 	})
 
@@ -466,7 +466,7 @@ func TestWait(t *testing.T) {
 	done := false
 
 	// Do some work with the pool.
-	pool.AddWorkItem(ctx, cancel, func(internalCtx context.Context) error {
+	pool.AddWorkItem(ctx, cancel, func(workCtx context.Context) error {
 		mux.Lock()
 		defer mux.Unlock()
 		done = true
@@ -514,7 +514,7 @@ func TestWorkerError(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 
 	// Get a worker to give a custom error async.
-	pool.AddWorkItem(ctx, cancel, func(internalCtx context.Context) error {
+	pool.AddWorkItem(ctx, cancel, func(workCtx context.Context) error {
 		return customErr
 	})
 

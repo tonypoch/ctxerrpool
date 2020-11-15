@@ -154,8 +154,8 @@ The fourth argument is the error handler created in the previous step.
 
 ### Create work
 ---
-Work sent to the worker group must match the `ctxerrgroup.Work` function signature: `type Work func(ctx context.Context)
-(err error)` and is expected to respect its given context, `ctx`. If the context is not respected and the worker group
+Work sent to the worker group must match the `ctxerrgroup.Work` function signature: `type Work func(workCtx
+context.Context) (err error)` and is expected to respect its given context, `ctx`. If the context is not respected and the worker group
 is killed, the goroutine performing the work will leak.
 
 Here is an example of some work that respects its context:
