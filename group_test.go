@@ -301,7 +301,7 @@ func TestErrorTimeoutBadWork(t *testing.T) {
 	// Get a worker to sleep for a second.
 	pool.AddWorkItem(ctx, cancel, func(workCtx context.Context) error {
 
-		// Do not respect internal context.
+		// Do not respect workCtx.
 		select {
 		case <-time.After(time.Second * 10): // Fail after the tests should be done. The goroutine for this work will leak.
 			t.FailNow()

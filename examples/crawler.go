@@ -59,7 +59,7 @@ func handleHref(httpClient *http.Client, l *log.Logger, match []byte, group ctxe
 
 		// Do the HTTP request and start crawling. Respect the given context.
 		//
-		// Make sure to use internal context from anonymous function argument.
+		// Make sure to use workCtx from anonymous function argument.
 		if err := crawl(workCtx, httpClient, l, group, nextU.String()); err != nil {
 			return err
 		}
