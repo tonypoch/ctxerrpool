@@ -89,27 +89,6 @@ func main() {
 
 # Usage
 
-## Simple Diagram
-Here is a simple state diagram with one job:
-```mermaid
-stateDiagram
-	cH : Create error handler
-	cP : Create Group
-	cW : Create work function
-	cC : Create context
-	sW : Send work items
-	wW : Wait for workers to finish
-	kP : Kill the Group
-	[*] --> cH
-	cH --> cP
-	cP --> cW
-	cW --> cC
-	cC --> sW
-	sW --> wW
-	wW --> kP
-	kP --> [*]
-```
-
 ## Basic Workflow
 
 ### Create an error handler
