@@ -18,7 +18,7 @@ var (
 	// The regex used to determine if the test was successful.
 	noFail = regexp.MustCompile(`PASS
 coverage: \d*\.\d*% of statements
-ok  	gitlab\.com/MicahParks/ctxerrgroup	0\.\d*s`)  // Tests longer than 1 second are unacceptable.
+ok  	github\.com/MicahParks/ctxerrgroup	0\.\d*s`)  // Tests longer than 1 second are unacceptable.
 
 	// The regex used to extract the coverage as a float.
 	coverage = regexp.MustCompile(`coverage: \d*\.\d*%`)

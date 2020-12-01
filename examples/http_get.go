@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/MicahParks/ctxerrgroup"
+	"github.com/MicahParks/ctxerrgroup"
 )
 
 func main() {

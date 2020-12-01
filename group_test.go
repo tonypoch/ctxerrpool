@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"gitlab.com/MicahParks/ctxerrgroup"
+	"github.com/MicahParks/ctxerrgroup"
 )
 
 // TestDeathBeforeWork confirms that a worker pool can be killed before doing any work safely.
