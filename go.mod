@@ -1,3 +1,3 @@
-module gitlab.com/MicahParks/ctxerrgroup
+module github.com/MicahParks/ctxerrgroup
 
 go 1.14
