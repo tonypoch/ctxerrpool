@@ -17,11 +17,11 @@ type Group struct {
 }
 
 // New creates a new Group.
-func New(workers uint, workItemBuffer uint, asyncErrors bool, errorHandler ErrorHandler) Group {
+func New(workers uint, errorHandler ErrorHandler) Group {
 
 	// Create the required channels and wait group.
 	death := make(chan struct{})
-	do := make(chan *workItem, workItemBuffer)
+	do := make(chan *workItem)
 	errChan := make(chan error)
 	wg := &sync.WaitGroup{}
 
@@ -34,7 +34,7 @@ func New(workers uint, workItemBuffer uint, asyncErrors bool, errorHandler Error
 	}
 
 	// Handle all outgoing errors async.
-	go group.handleErrors(asyncErrors, errorHandler)
+	go group.handleErrors(errorHandler)
 
 	// Create the desired number of workers and start them.
 	for i := uint(0); i < workers; i++ {
@@ -111,7 +111,7 @@ func (g Group) Wait() {
 // handleErrors is meant to be a goroutine that will handle all errors returned from work items. It takes in an error
 // handler function and an async boolean. If the async boolean is true, all errors returned from work items will be
 // handled in their own goroutine.
-func (g Group) handleErrors(async bool, handler ErrorHandler) {
+func (g Group) handleErrors(handler ErrorHandler) {
 	for {
 		select {
 
@@ -127,12 +127,8 @@ func (g Group) handleErrors(async bool, handler ErrorHandler) {
 				return
 			}
 
-			// Handle the error async or not.
-			if async {
-				go handler(g, err)
-			} else {
-				handler(g, err)
-			}
+			// Handle the error async.
+			go handler(g, err)
 		}
 	}
 }

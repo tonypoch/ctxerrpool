@@ -19,9 +19,8 @@ func main() {
 		log.Printf("An error occurred. Error: \"%s\".\n", err.Error())
 	}
 
-	// Create a worker group with 8 workers and a buffer that can queue work functions. Do not handle errors in a
-	// separate goroutine.
-	group := ctxerrgroup.New(4, 8, false, errorHandler)
+	// Create a worker group with 4 workers.
+	group := ctxerrgroup.New(4, errorHandler)
 
 	// Create some variables to inherit through a closure.
 	httpClient := &http.Client{}

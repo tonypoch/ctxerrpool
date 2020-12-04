@@ -32,7 +32,7 @@ func createContext() (context.Context, context.CancelFunc) {
 	return context.WithTimeout(context.Background(), crawlDuration)
 }
 
-// handleHref
+// handleHref takes in an href tag and adds it to the upcoming work for the crawler.
 func handleHref(httpClient *http.Client, l *log.Logger, match []byte, group ctxerrgroup.Group, startU *url.URL) {
 
 	// Get the href's content as an absolute URL.
@@ -86,8 +86,8 @@ func main() {
 		l.Printf("An error occurred: \"%v\".\n", err)
 	}
 
-	// Create a worker group with 4 workers and a buffer for 8 ctxerrgroup.Work functions.
-	group := ctxerrgroup.New(4, 8, false, errorHandler)
+	// Create a worker group with 4 workers.
+	group := ctxerrgroup.New(4, errorHandler)
 
 	// Create the work function via a closure.
 	var work ctxerrgroup.Work
@@ -107,6 +107,7 @@ func main() {
 	// Start the scraper.
 	group.AddWorkItem(ctx, cancel, work)
 
+	// Wait for the group to die or for the allowed amount of time to pass.
 	select {
 	case <-group.Death():
 	case <-time.After(crawlDuration):
@@ -133,15 +134,11 @@ func crawl(ctx context.Context, httpClient *http.Client, l *log.Logger, group ct
 	if resp, err = httpClient.Do(req); err != nil {
 		return err
 	}
+	defer resp.Body.Close() // Ignore any error.
 
 	// Read the body of the response into a variable in the stack.
 	var body []byte
 	if body, err = ioutil.ReadAll(resp.Body); err != nil {
-		return err
-	}
-
-	// Close the body of the response.
-	if err = resp.Body.Close(); err != nil {
 		return err
 	}
 

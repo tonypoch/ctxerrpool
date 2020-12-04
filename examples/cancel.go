@@ -22,8 +22,8 @@ func main() {
 		group.Kill()
 	}
 
-	// Create a worker group with 1 worker and no buffer for queued work. Do not handle errors in a separate goroutine.
-	group := ctxerrgroup.New(1, 0, false, errorHandler)
+	// Create a worker group with 1 worker.
+	group := ctxerrgroup.New(1, errorHandler)
 
 	// Create a wait group so the work actually starts.
 	//

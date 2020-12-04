@@ -47,7 +47,7 @@ func main() {
 	}
 
 	// Create a worker group with 1 worker.
-	group := ctxerrgroup.New(1, 0, false, errorHandler)
+	group := ctxerrgroup.New(1, errorHandler)
 
 	// Create a context for a some work.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)

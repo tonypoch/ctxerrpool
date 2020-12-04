@@ -30,7 +30,7 @@ import (
 	"os"
 	"time"
 
-	"gitlab.com/MicahParks/ctxerrgroup"
+	"github.com/MicahParks/ctxerrgroup"
 )
 
 func main() {
@@ -41,9 +41,8 @@ func main() {
 		log.Printf("An error occurred. Error: \"%s\".\n", err.Error())
 	}
 
-	// Create a worker group with 8 workers and a buffer that can queue work functions. Do not handle errors in a
-	// separate goroutine.
-	group := ctxerrgroup.New(4, 8, false, errorHandler)
+	// Create a worker group with 4 workers.
+	group := ctxerrgroup.New(4, errorHandler)
 
 	// Create some variables to inherit through a closure.
 	httpClient := &http.Client{}
@@ -113,23 +112,15 @@ errorHandler = func(group ctxerrgroup.Group, err error) {
 ---
 After the error handler has been created, the worker group can be created.
 ```go
-// Create a worker group with 8 workers and a buffer that can queue work functions. Do not handle errors in a
-// separate goroutine.
-group := ctxerrgroup.New(4, 8, false, errorHandler)
+// Create a worker group with 4 workers.
+group := ctxerrgroup.New(4, errorHandler)
 ```
 
 The first argument is the number of workers. The number of workers is the maximum number of goroutines that can be
 working on work at any one time. If the number of workers is 0, the group will be useless.
 
-The second argument is the buffer size. The buffer size is the quantity of ctxerrgroup.Work functions that are queued to
-be sent to the group. If the buffer size is zero, all calls to `group.AddWorkItem` will block until a worker is free to
-accept the given work (unless the `async` argument is set to `true`).
-
-The third argument indicates whether error should be handled asynchronously. If set to `true` a new goroutine will be
-used to handle every error outgoing from the worker group. A value of `false` will cut down on the amount of goroutines
-used, but block future workers with errors until the error handler returns.
-
-The fourth argument is the error handler created in the previous step.
+The second argument is the error handler created in the previous step. All errors will be sent to the error handler
+asynchronously (in a separate goroutine). 
 
 ### Create work
 ---
@@ -244,7 +235,7 @@ for i := 0; i < 16; i++ {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 
 	// Send the work to the group.
-	group.AddWorkItem(ctx, cancel, false, work)
+	group.AddWorkItem(ctx, cancel, work)
 }
 ```
 
@@ -257,13 +248,7 @@ group.Wait()
 
 The first and second arguments are the unique context and cancellation functions for the given work.
 
-The third argument indicates if the work should be sent asynchronously. If `true`, the `SendWork` method will not block
-when sending work to the worker group. This effectively creates a buffer of infinity work functions ready to be sent to
-worker goroutines. If set to `true`, an additional goroutine will be created to send the work to a worker in the group.
-If `false` the `SendWork` method will block if the group's buffer is full and no worker is ready for more work. (The
-buffer was created when the group was created.)
-
-The fourth argument is the work function created in a previous step.
+The third argument is the work function created in a previous step.
 
 ### Let the work finish
 ---

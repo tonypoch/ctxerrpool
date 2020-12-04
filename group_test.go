@@ -18,7 +18,7 @@ func TestDeathBeforeWork(t *testing.T) {
 	wg := &sync.WaitGroup{}
 
 	// Create a worker pool with 1 worker.
-	pool := ctxerrgroup.New(1, 0, false, func(pool ctxerrgroup.Group, err error) {
+	pool := ctxerrgroup.New(1, func(pool ctxerrgroup.Group, err error) {
 		wg.Add(1)
 		defer wg.Done()
 
@@ -42,7 +42,7 @@ func TestDeathDeadOnArrival(t *testing.T) {
 	wg := &sync.WaitGroup{}
 
 	// Create a worker pool with 1 worker.
-	pool := ctxerrgroup.New(1, 0, false, func(pool ctxerrgroup.Group, err error) {
+	pool := ctxerrgroup.New(1, func(pool ctxerrgroup.Group, err error) {
 		wg.Add(1)
 		defer wg.Done()
 
@@ -76,7 +76,7 @@ func TestDeathDuring(t *testing.T) {
 	wg := &sync.WaitGroup{}
 
 	// Create a worker pool with 1 worker.
-	pool := ctxerrgroup.New(1, 0, false, func(pool ctxerrgroup.Group, err error) {
+	pool := ctxerrgroup.New(1, func(pool ctxerrgroup.Group, err error) {
 		wg.Add(1)
 		defer wg.Done()
 
@@ -134,7 +134,7 @@ func TestDone(t *testing.T) {
 	wg := &sync.WaitGroup{}
 
 	// Create a worker pool with 1 worker.
-	pool := ctxerrgroup.New(1, 0, false, func(pool ctxerrgroup.Group, err error) {
+	pool := ctxerrgroup.New(1, func(pool ctxerrgroup.Group, err error) {
 		wg.Add(1)
 		defer wg.Done()
 
@@ -181,7 +181,7 @@ func TestErrCantDo(t *testing.T) {
 	wg.Add(1)
 
 	// Create a worker pool with 0 workers.
-	pool := ctxerrgroup.New(0, 0, false, func(pool ctxerrgroup.Group, err error) {
+	pool := ctxerrgroup.New(0, func(pool ctxerrgroup.Group, err error) {
 		defer wg.Done()
 
 		// This test case should have the ctxerrgroup.ErrCantDo error.
@@ -213,7 +213,7 @@ func TestErrCantDoDeadOnArrival(t *testing.T) {
 	wg.Add(1)
 
 	// Create a worker pool with 1 worker.
-	pool := ctxerrgroup.New(1, 0, false, func(pool ctxerrgroup.Group, err error) {
+	pool := ctxerrgroup.New(1, func(pool ctxerrgroup.Group, err error) {
 		defer wg.Done()
 
 		// This test case should have the ctxerrgroup.ErrCantDo error.
@@ -245,7 +245,7 @@ func TestErrorTimeout(t *testing.T) {
 	wg.Add(1)
 
 	// Create a worker pool with 1 worker.
-	pool := ctxerrgroup.New(1, 0, false, func(pool ctxerrgroup.Group, err error) {
+	pool := ctxerrgroup.New(1, func(pool ctxerrgroup.Group, err error) {
 		defer wg.Done()
 
 		// This test case should have the context.DeadlineExceeded error.
@@ -285,7 +285,7 @@ func TestErrorTimeoutBadWork(t *testing.T) {
 	wg.Add(1)
 
 	// Create a worker pool with 1 worker.
-	pool := ctxerrgroup.New(1, 0, false, func(pool ctxerrgroup.Group, err error) {
+	pool := ctxerrgroup.New(1, func(pool ctxerrgroup.Group, err error) {
 		defer wg.Done()
 
 		// This test case should have the context.DeadlineExceeded error.
@@ -321,7 +321,7 @@ func TestKill(t *testing.T) {
 	wg := &sync.WaitGroup{}
 
 	// Create a worker pool with 1 worker.
-	pool := ctxerrgroup.New(1, 0, false, func(pool ctxerrgroup.Group, err error) {
+	pool := ctxerrgroup.New(1, func(pool ctxerrgroup.Group, err error) {
 		wg.Add(1)
 		defer wg.Done()
 
@@ -373,7 +373,7 @@ func TestMultiWorker(t *testing.T) {
 	wg := &sync.WaitGroup{}
 
 	// Create a worker pool with 2 workers.
-	pool := ctxerrgroup.New(2, 0, false, func(pool ctxerrgroup.Group, err error) {
+	pool := ctxerrgroup.New(2, func(pool ctxerrgroup.Group, err error) {
 		wg.Add(1)
 		defer wg.Done()
 
@@ -420,7 +420,7 @@ func TestNew(t *testing.T) {
 	wg := &sync.WaitGroup{}
 
 	// Create a worker pool with 1 worker.
-	pool := ctxerrgroup.New(1, 0, false, func(pool ctxerrgroup.Group, err error) {
+	pool := ctxerrgroup.New(1, func(pool ctxerrgroup.Group, err error) {
 		wg.Add(1)
 		defer wg.Done()
 
@@ -449,7 +449,7 @@ func TestWait(t *testing.T) {
 	wg := &sync.WaitGroup{}
 
 	// Create a worker pool with 1 worker.
-	pool := ctxerrgroup.New(1, 0, false, func(pool ctxerrgroup.Group, err error) {
+	pool := ctxerrgroup.New(1, func(pool ctxerrgroup.Group, err error) {
 		wg.Add(1)
 		defer wg.Done()
 
@@ -500,7 +500,7 @@ func TestWorkerError(t *testing.T) {
 	wg.Add(1)
 
 	// Create a worker pool with 1 worker.
-	pool := ctxerrgroup.New(1, 0, false, func(pool ctxerrgroup.Group, err error) {
+	pool := ctxerrgroup.New(1, func(pool ctxerrgroup.Group, err error) {
 		defer wg.Done()
 
 		// This test case should have no error.
