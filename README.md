@@ -265,7 +265,7 @@ The first and second arguments are the unique context and cancellation functions
 
 The third argument is the `work function` created in a previous step.
 
-### Let the work finish
+### Let all `work item`s finish
 ---
 ```go
 group.Wait()
@@ -277,7 +277,7 @@ or
 Both statements will block until the `worker group` has completed all given `work item`s. The `Done` method is idea for
 `select` statements.
 
-### Clean up the worker group
+### Clean up the `worker group`
 ---
 ```go
 group.Kill()
@@ -285,6 +285,9 @@ group.Kill()
 Killing the `worker group`s isn't required, but if the `worker group` is no longer being used it's best to tell all its
 goroutines to return to reclaim their resources. If the program's `main` function is about to end, `group.Kill()` will
 be accomplished regardless.
+
+A `worker group` can be killed before all `work item`s finish. Outstanding `work item`s' `context.CancelFunc` will be
+called.
 
 # Test Coverage
 Testing coverage for this repository is currently greater than 90%. Depending on how Go runtime schedules things,
