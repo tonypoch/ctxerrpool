@@ -286,7 +286,7 @@ Killing the `worker group`s isn't required, but if the `worker group` is no long
 goroutines to return to reclaim their resources. If the program's `main` function is about to end, `group.Kill()` will
 be accomplished regardless.
 
-A `worker group` can be killed before all `work item`s finish. Outstanding `work item`s' `context.CancelFunc` will be
+A `worker group` can be killed before all `work item`s finish. Outstanding `work item`s' `context.CancelFunc`s will be
 called.
 
 # Test Coverage
