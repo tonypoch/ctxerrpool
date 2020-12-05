@@ -88,12 +88,12 @@ func main() {
 
 # Terminology
 
-|Term             |Description                                                                                                  |
-|-----------------|-------------------------------------------------------------------------------------------------------------|
-|`worker`         |A goroutine dedicated to completing `work item`s.                                                            |
-|`worker group`   |A number of `worker`s who all consume `work item`s from the same set and report errors via a common handler. |
-|`worker function`|A function matching a specific signature that can be run by a `worker`.                                      |
-|`work item`      |A `worker function` plus a `context.Context` and `context.CancelFunc` pair that will be run once by a worker.|
+|Term             |Description                                                                                                         |
+|-----------------|--------------------------------------------------------------------------------------------------------------------|
+|`worker`         |A goroutine dedicated to completing `work item`s.                                                                   |
+|`worker group`   |A number of `worker`s who all consume `work item`s from the same set and report errors via a common handler.        |
+|`worker function`|A function matching a specific signature that can be run by a `worker`.                                             |
+|`work item`      |A `worker function` plus a unique `context.Context` and `context.CancelFunc` pair that will be run once by a worker.|
 
 # Usage
 
