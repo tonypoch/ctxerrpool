@@ -117,7 +117,7 @@ group := ctxerrgroup.New(4, errorHandler)
 ```
 
 The first argument is the number of workers. The number of workers is the maximum number of goroutines that can be
-working on work at any one time. If the number of workers is 0, the group will be useless.
+working on a work item at any one time. If the number of workers is 0, the group will be useless. 
 
 The second argument is the error handler created in the previous step. All errors will be sent to the error handler
 asynchronously (in a separate goroutine). 
