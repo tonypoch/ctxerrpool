@@ -1,4 +1,4 @@
-[![Go Report Card](https://goreportcard.com/badge/gitlab.com/MicahParks/ctxerrgroup)](https://goreportcard.com/report/gitlab.com/MicahParks/ctxerrgroup)[![PkgGoDev](https://pkg.go.dev/badge/gitlab.com/MicahParks/ctxerrgroup)](https://pkg.go.dev/gitlab.com/MicahParks/ctxerrgroup)
+[![Go Report Card](https://goreportcard.com/badge/github.com/MicahParks/ctxerrgroup)](https://goreportcard.com/report/github.com/MicahParks/ctxerrgroup) [![PkgGoDev](https://pkg.go.dev/badge/github.com/MicahParks/ctxerrgroup)](https://pkg.go.dev/github.com/MicahParks/ctxerrgroup)
 # ctxerrgroup
 Groups of goroutines that understand context.Context and error handling.
 
