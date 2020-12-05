@@ -96,8 +96,8 @@ The very first step to using a worker group is creating an error handler. The wo
 match the `ctxerrgroup.Work` function signature: `type Work func(ctx context.Context) (err error)`.
 
 Error handlers have the function signature of `type ErrorHandler func(group Group, err error)` where the first argument
-is the `ctxerrgroup.Group` that the error handler is handling errors for and the second argument is the most recent
-error reported from a worker.
+is the `ctxerrgroup.Group` that the error handler is handling errors for and the second argument is the current error
+reported from a worker.
 
 The example error handler below logs all errors with the build in logger.
 ```go
