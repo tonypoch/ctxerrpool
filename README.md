@@ -12,7 +12,7 @@ Groups of goroutines that understand context.Context and error handling.
 * MIT License.
 * No dependencies outside of the packages included with the Golang compiler.
 * Small code base.
-  * Two source files with less than 350 lines of code including lots of comments.
+  * Three source files with less than 350 lines of code including lots of comments.
 * Test coverage is greater than 90%.
 * The group and its workers will all be cleaned up with `group.Kill()`. (All work sent to the group should exit as well,
 if it respects its own context.)
