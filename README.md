@@ -86,18 +86,27 @@ func main() {
 }
 ```
 
+# Terminology
+
+|Term             |Description                                                                                      |
+|-----------------|-------------------------------------------------------------------------------------------------| 
+|`worker`         |A goroutine dedicated to completing `work item`s.                                                |
+|`worker group`   |A number of `worker`s who all consume `work item`s from the same set.                            |
+|`worker function`|A function matching a specific signature that can be run by a `worker`.                          |
+|`work item`      |A `worker function` plus a `context.Context` and `context.CancelFunc` pair that will be run once.|
+
 # Usage
 
 ## Basic Workflow
 
 ### Create an error handler
 ---
-The very first step to using a worker group is creating an error handler. The worker group is expecting all work to
-match the `ctxerrgroup.Work` function signature: `type Work func(ctx context.Context) (err error)`.
+The very first step to using a `worker group` is creating an error handler. The `worker group` is expecting all `worker
+function`s to match the `ctxerrgroup.Work` function signature: `type Work func(ctx context.Context) (err error)`.
 
 Error handlers have the function signature of `type ErrorHandler func(group Group, err error)` where the first argument
 is the `ctxerrgroup.Group` that the error handler is handling errors for and the second argument is the current error
-reported from a worker.
+reported from a `worker`.
 
 The example error handler below logs all errors with the build in logger.
 ```go
@@ -110,25 +119,25 @@ errorHandler = func(group ctxerrgroup.Group, err error) {
 
 ### Create a worker group
 ---
-After the error handler has been created, the worker group can be created.
+After the error handler has been created, the `worker group` can be created.
 ```go
 // Create a worker group with 4 workers.
 group := ctxerrgroup.New(4, errorHandler)
 ```
 
-The first argument is the number of workers. The number of workers is the maximum number of goroutines that can be
-working on a work item at any one time. If the number of workers is 0, the group will be useless. 
+The first argument is the number of `worker`s. The number of `worker`s is the maximum number of goroutines that can be
+working on a `work item` at any one time. If the number of `worker`s is 0, the `worker group` will be useless. 
 
 The second argument is the error handler created in the previous step. All errors will be sent to the error handler
 asynchronously (in a separate goroutine). 
 
-### Create work
+### Create `worker function`s
 ---
-Work sent to the worker group must match the `ctxerrgroup.Work` function signature: `type Work func(workCtx
-context.Context) (err error)` and is expected to respect its given context, `workCtx`. If the context is not respected and the worker group
-is killed, the goroutine performing the work will leak.
+`worker function`s sent to the `worker group` must match the `ctxerrgroup.Work` function signature: `type Work func(workCtx
+context.Context) (err error)` and is expected to respect its given context, `workCtx`. If the context is not respected
+and the `worker group` is killed, the goroutine performing the work will leak.
 
-Here is an example of some work that respects its context:
+Here is an example of a `worker function` that respects its context:
 ```go
 // Create the worker function.
 var work ctxerrgroup.Work
@@ -153,7 +162,7 @@ work = func(ctx context.Context) (err error) {
 }
 ```
 
-Here is an example of some work that does the same thing without respecting its own context:
+Here is an example of a `worker function` that does the same thing without respecting its own context:
 ```go
 // Create the worker function.
 var work ctxerrgroup.Work
@@ -179,7 +188,7 @@ work = func(ctx context.Context) (err error) {
 ```
 
 Since most functions do not match the `ctxerrgroup.Work` signature,
-[function closures](https://tour.golang.org/moretypes/25) are typically the desired way to create worker functions.
+[function closures](https://tour.golang.org/moretypes/25) are typically a convenient way to create `worker functions`.
 ```go
 // Create some variables to inherit through a closure.
 httpClient := &http.Client{}
@@ -211,8 +220,8 @@ work = func(ctx context.Context) (err error) {
 
 ### Create a context
 ---
-Work and context have a 1:1 relationship when used in a worker group. Each context's cancel function is called on work
-completion. Never send work with a context with a context that has been used before.
+`work item`s and contexts have a 1:1 relationship. Each context's cancel function is called on the completion of its
+`work item` completion. Never send a `work item` with a context that has been used before.
 
 Here is an example of what *not* to do:
 ```go
@@ -239,16 +248,22 @@ for i := 0; i < 16; i++ {
 }
 ```
 
-### Send work
+### Adding `work item`s
 ---
+Adding, in its simplest form. Was addressed above on these lines.
 ```go
-// Wait for the group to finish.
-group.Wait()
+// Send the work to the group.
+group.AddWorkItem(ctx, cancel, work)
 ```
 
-The first and second arguments are the unique context and cancellation functions for the given work.
+Any time the `AddWorkItem` method is called, a new `work item` will be taken and performed by the `worker pool`.
 
-The third argument is the work function created in a previous step.
+Remember that `worker functions` can also be created via function closures. This allows access to variables that are
+needed but do not match the function signature: `ctxerrgroup.Work`.
+
+The first and second arguments are the unique context and cancellation functions for the given `work item`.
+
+The third argument is the `work function` created in a previous step.
 
 ### Let the work finish
 ---
@@ -259,15 +274,15 @@ or
 ```go
 <-group.Done()
 ```
-Both statements will block until the worker group has completed all given work. The `Done` method is idea for `select`
-statements.
+Both statements will block until the `worker group` has completed all given `work item`s. The `Done` method is idea for
+`select` statements.
 
 ### Clean up the worker group
 ---
 ```go
 group.Kill()
 ```
-Killing the worker groups isn't required, but if the worker group is no longer being used it's best to tell all its
+Killing the `worker group`s isn't required, but if the `worker group` is no longer being used it's best to tell all its
 goroutines to return to reclaim their resources. If the program's `main` function is about to end, `group.Kill()` will
 be accomplished regardless.
 
