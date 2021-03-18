@@ -9,7 +9,7 @@ Groups of goroutines that understand context.Context and error handling.
   * `Wait` method mimics `sync.WaitGroup`'s.
 * Flat and simple.
   * Only exported struct is `ctxerrgroup.Group`.
-* MIT License.
+* Apache 2.0 License.
 * No dependencies outside of the packages included with the Golang compiler.
 * Small code base.
   * Three source files with less than 350 lines of code including lots of comments.
