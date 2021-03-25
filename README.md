@@ -1,21 +1,8 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/MicahParks/ctxerrgroup)](https://goreportcard.com/report/github.com/MicahParks/ctxerrgroup) [![PkgGoDev](https://pkg.go.dev/badge/github.com/MicahParks/ctxerrgroup)](https://pkg.go.dev/github.com/MicahParks/ctxerrgroup)
 # ctxerrgroup
-Groups of goroutines that understand context.Context and error handling.
-
-# Benefits
-* Async error handling simplified.
-* Familiar methods.
-  * `Done` method mimics `context.Context`'s.
-  * `Wait` method mimics `sync.WaitGroup`'s.
-* Flat and simple.
-  * Only exported struct is `ctxerrgroup.Group`.
-* Apache 2.0 License.
-* No dependencies outside of the packages included with the Golang compiler.
-* Small code base.
-  * Three source files with less than 350 lines of code including lots of comments.
-* Test coverage is greater than 90%.
-* The group and its workers will all be cleaned up with `group.Kill()`. (All work sent to the group should exit as well,
-if it respects its own context.)
+Create a group of a given number of worker goroutines to behave as a worker pool. The group will do work that is aware
+of
+[`context.Context`](https://golang.org/pkg/context/#Context) and error handling.
 
 # Full example
 This example will use a worker group to HTTP GET https://golang.org 16 times and print the status codes with a logger.
@@ -95,14 +82,53 @@ func main() {
 |`worker function`|A function matching a specific signature that can be run by a `worker`.                                             |
 |`work item`      |A `worker function` plus a unique `context.Context` and `context.CancelFunc` pair that will be run once by a worker.|
 
+# Differences between [`golang.org/x/sync/errgroup`](https://pkg.go.dev/golang.org/x/sync/errgroup)
+
+This package `github.com/MicahParks/ctxerrgroup` and
+[`golang.org/x/sync/errgroup`](https://pkg.go.dev/golang.org/x/sync/errgroup) are similar, but serve different use
+cases.
+
+The current overview for `errgroup` is:
+
+> Package errgroup provides synchronization, error propagation, and Context cancelation for groups of goroutines working on subtasks of a common task.
+
+In terms of Context, this is to say that each group is associated to one context. Another key point is: all
+tasks (`work item`s) for a group are subtasks of a common task.
+
+In contrast, `ctxerrgroup` makes `work item`s and Contexts have a one to one relationship. `worker function`s do not
+need to be subtasks of a common task as one of the primary features of the group is to behave as a worker pool. I find
+worker pools helpful in performing work asynchronously without worrying about creating too many goroutines.
+
+|             |Purpose                   |one to one with `context.Context`|errors          |
+|-------------|--------------------------|---------------------------------|----------------|
+|`errgroup`   |subtasks of a common task |`errgroup.Group`                 |Propagation     |
+|`ctxerrgroup`|goroutines as worker pools|`work item`                      |Handler function|
+
+# Benefits
+
+* Async error handling simplified.
+* Familiar methods.
+  * `Done` method mimics `context.Context`'s.
+  * `Wait` method mimics `sync.WaitGroup`'s.
+* Flat and simple.
+  * Only exported struct is `ctxerrgroup.Group`.
+* Apache 2.0 License.
+* No dependencies outside of the packages included with the Golang compiler.
+* Small code base.
+  * Three source files with less than 350 lines of code including lots of comments.
+* Test coverage is greater than 90%.
+* The group and its workers will all be cleaned up with `group.Kill()`. (All work sent to the group should exit as well,
+  if it respects its own context.)
+
 # Usage
 
 ## Basic Workflow
 
 ### Create an error handler
 ---
-The very first step to using a `worker group` is creating an error handler. The `worker group` is expecting all `worker
-function`s to match the `ctxerrgroup.Work` function signature: `type Work func(ctx context.Context) (err error)`.
+The first step to using a `worker group` is creating an error handler. The `worker group` is expecting
+all `worker function`s to match the `ctxerrgroup.Work` function
+signature: `type Work func(ctx context.Context) (err error)`.
 
 Error handlers have the function signature of `type ErrorHandler func(group Group, err error)` where the first argument
 is the `ctxerrgroup.Group` that the error handler is handling errors for and the second argument is the current error
@@ -299,4 +325,4 @@ directory has log output from the tool and testing coverage profiles for multipl
 
 In my experience, test coverage that counts the number of lines executed can be a misleading number. While I believe the
 current written tests adequately cover the code base, if there are test cases that are not covered by the current
-testing files, please feel free to add an issue requesting the test case or create an MR that adds tests.
+testing files, please feel free to add an issue requesting the test case or create a PR that adds tests.
