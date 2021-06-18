@@ -5,35 +5,35 @@ import (
 	"log"
 	"sync"
 
-	"github.com/MicahParks/ctxerrgroup"
+	"github.com/MicahParks/ctxerrpool"
 )
 
 func main() {
 
-	// Create a wait group so that the cancellation error gets caught.
+	// Create a wait pool so that the cancellation error gets caught.
 	errWg := &sync.WaitGroup{}
 	errWg.Add(1)
 
 	// Create an error handler that
-	var errorHandler ctxerrgroup.ErrorHandler
-	errorHandler = func(group ctxerrgroup.Group, err error) {
+	var errorHandler ctxerrpool.ErrorHandler
+	errorHandler = func(pool ctxerrpool.Pool, err error) {
 		defer errWg.Done()
-		log.Printf("An error occurred. Error: %s\nKilling group.\n", err.Error())
-		group.Kill()
+		log.Printf("An error occurred. Error: %s\nKilling pool.\n", err.Error())
+		pool.Kill()
 	}
 
-	// Create a worker group with 1 worker.
-	group := ctxerrgroup.New(1, errorHandler)
+	// Create a worker pool with 1 worker.
+	pool := ctxerrpool.New(1, errorHandler)
 
-	// Create a wait group so the work actually starts.
+	// Create a wait pool so the work actually starts.
 	//
-	// Wait groups are typically unnecessary, it just helps make a more complete example.
+	// Wait pools are typically unnecessary, it just helps make a more complete example.
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 
-	// Create some work that respects it's given context. Give it a wait group to decrement so the worker group actually
+	// Create some work that respects it's given context. Give it a wait pool to decrement so the worker pool actually
 	// starts the work.
-	var work ctxerrgroup.Work
+	var work ctxerrpool.Work
 	work = func(ctx context.Context) (err error) {
 		wg.Done()
 
@@ -46,8 +46,8 @@ func main() {
 	// Create a context for the work.
 	ctx, cancel := context.WithCancel(context.Background())
 
-	// Send the work to the group.
-	group.AddWorkItem(ctx, cancel, work)
+	// Send the work to the pool.
+	pool.AddWorkItem(ctx, cancel, work)
 
 	// Wait for the work to start.
 	wg.Wait()

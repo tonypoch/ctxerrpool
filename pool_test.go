@@ -1,4 +1,4 @@
-package ctxerrgroup_test
+package ctxerrpool_test
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/MicahParks/ctxerrgroup"
+	"github.com/MicahParks/ctxerrpool"
 )
 
 // TestDeathBeforeWork confirms that a worker pool can be killed before doing any work safely.
@@ -18,7 +18,7 @@ func TestDeathBeforeWork(t *testing.T) {
 	wg := &sync.WaitGroup{}
 
 	// Create a worker pool with 1 worker.
-	pool := ctxerrgroup.New(1, func(pool ctxerrgroup.Group, err error) {
+	pool := ctxerrpool.New(1, func(pool ctxerrpool.Pool, err error) {
 		wg.Add(1)
 		defer wg.Done()
 
@@ -42,7 +42,7 @@ func TestDeathDeadOnArrival(t *testing.T) {
 	wg := &sync.WaitGroup{}
 
 	// Create a worker pool with 1 worker.
-	pool := ctxerrgroup.New(1, func(pool ctxerrgroup.Group, err error) {
+	pool := ctxerrpool.New(1, func(pool ctxerrpool.Pool, err error) {
 		wg.Add(1)
 		defer wg.Done()
 
@@ -76,7 +76,7 @@ func TestDeathDuring(t *testing.T) {
 	wg := &sync.WaitGroup{}
 
 	// Create a worker pool with 1 worker.
-	pool := ctxerrgroup.New(1, func(pool ctxerrgroup.Group, err error) {
+	pool := ctxerrpool.New(1, func(pool ctxerrpool.Pool, err error) {
 		wg.Add(1)
 		defer wg.Done()
 
@@ -88,7 +88,7 @@ func TestDeathDuring(t *testing.T) {
 	// Create a context.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 
-	// Create a wait group that indicates the work has started.
+	// Create a wait pool that indicates the work has started.
 	workWg := &sync.WaitGroup{}
 	workWg.Add(1)
 
@@ -134,7 +134,7 @@ func TestDone(t *testing.T) {
 	wg := &sync.WaitGroup{}
 
 	// Create a worker pool with 1 worker.
-	pool := ctxerrgroup.New(1, func(pool ctxerrgroup.Group, err error) {
+	pool := ctxerrpool.New(1, func(pool ctxerrpool.Pool, err error) {
 		wg.Add(1)
 		defer wg.Done()
 
@@ -176,16 +176,16 @@ func TestDone(t *testing.T) {
 // no workers in the pool.
 func TestErrCantDo(t *testing.T) {
 
-	// Create a wait group that waits for the error to be handled.
+	// Create a wait pool that waits for the error to be handled.
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 
 	// Create a worker pool with 0 workers.
-	pool := ctxerrgroup.New(0, func(pool ctxerrgroup.Group, err error) {
+	pool := ctxerrpool.New(0, func(pool ctxerrpool.Pool, err error) {
 		defer wg.Done()
 
-		// This test case should have the ctxerrgroup.ErrCantDo error.
-		if !errors.Is(err, ctxerrgroup.ErrCantDo) {
+		// This test case should have the ctxerrpool.ErrCantDo error.
+		if !errors.Is(err, ctxerrpool.ErrCantDo) {
 			t.Errorf("An error occurred. Error: %v", err)
 			t.FailNow()
 		}
@@ -208,16 +208,16 @@ func TestErrCantDo(t *testing.T) {
 // over the error channel with the reason being because the context was expired upon arrival.
 func TestErrCantDoDeadOnArrival(t *testing.T) {
 
-	// Create a wait group that waits for the error to be handled.
+	// Create a wait pool that waits for the error to be handled.
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 
 	// Create a worker pool with 1 worker.
-	pool := ctxerrgroup.New(1, func(pool ctxerrgroup.Group, err error) {
+	pool := ctxerrpool.New(1, func(pool ctxerrpool.Pool, err error) {
 		defer wg.Done()
 
-		// This test case should have the ctxerrgroup.ErrCantDo error.
-		if !errors.Is(err, ctxerrgroup.ErrCantDo) {
+		// This test case should have the ctxerrpool.ErrCantDo error.
+		if !errors.Is(err, ctxerrpool.ErrCantDo) {
 			t.Errorf("An error occurred. Error: %v", err)
 			t.FailNow()
 		}
@@ -240,12 +240,12 @@ func TestErrCantDoDeadOnArrival(t *testing.T) {
 // its error will be reported to the pool.
 func TestErrorTimeout(t *testing.T) {
 
-	// Create a wait group that waits for the error to be handled.
+	// Create a wait pool that waits for the error to be handled.
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 
 	// Create a worker pool with 1 worker.
-	pool := ctxerrgroup.New(1, func(pool ctxerrgroup.Group, err error) {
+	pool := ctxerrpool.New(1, func(pool ctxerrpool.Pool, err error) {
 		defer wg.Done()
 
 		// This test case should have the context.DeadlineExceeded error.
@@ -280,12 +280,12 @@ func TestErrorTimeout(t *testing.T) {
 // context.
 func TestErrorTimeoutBadWork(t *testing.T) {
 
-	// Create a wait group that waits for the error to be handled.
+	// Create a wait pool that waits for the error to be handled.
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 
 	// Create a worker pool with 1 worker.
-	pool := ctxerrgroup.New(1, func(pool ctxerrgroup.Group, err error) {
+	pool := ctxerrpool.New(1, func(pool ctxerrpool.Pool, err error) {
 		defer wg.Done()
 
 		// This test case should have the context.DeadlineExceeded error.
@@ -321,7 +321,7 @@ func TestKill(t *testing.T) {
 	wg := &sync.WaitGroup{}
 
 	// Create a worker pool with 1 worker.
-	pool := ctxerrgroup.New(1, func(pool ctxerrgroup.Group, err error) {
+	pool := ctxerrpool.New(1, func(pool ctxerrpool.Pool, err error) {
 		wg.Add(1)
 		defer wg.Done()
 
@@ -373,7 +373,7 @@ func TestMultiWorker(t *testing.T) {
 	wg := &sync.WaitGroup{}
 
 	// Create a worker pool with 2 workers.
-	pool := ctxerrgroup.New(2, func(pool ctxerrgroup.Group, err error) {
+	pool := ctxerrpool.New(2, func(pool ctxerrpool.Pool, err error) {
 		wg.Add(1)
 		defer wg.Done()
 
@@ -420,7 +420,7 @@ func TestNew(t *testing.T) {
 	wg := &sync.WaitGroup{}
 
 	// Create a worker pool with 1 worker.
-	pool := ctxerrgroup.New(1, func(pool ctxerrgroup.Group, err error) {
+	pool := ctxerrpool.New(1, func(pool ctxerrpool.Pool, err error) {
 		wg.Add(1)
 		defer wg.Done()
 
@@ -449,7 +449,7 @@ func TestWait(t *testing.T) {
 	wg := &sync.WaitGroup{}
 
 	// Create a worker pool with 1 worker.
-	pool := ctxerrgroup.New(1, func(pool ctxerrgroup.Group, err error) {
+	pool := ctxerrpool.New(1, func(pool ctxerrpool.Pool, err error) {
 		wg.Add(1)
 		defer wg.Done()
 
@@ -480,7 +480,7 @@ func TestWait(t *testing.T) {
 	mux.Lock()
 	defer mux.Unlock()
 	if !done {
-		t.Error("Group did not complete the work.")
+		t.Error("Pool did not complete the work.")
 		t.FailNow()
 	}
 
@@ -488,8 +488,8 @@ func TestWait(t *testing.T) {
 	wg.Wait()
 }
 
-// TestWorkerError confirms that if work returns an error that isn't associated with the ctxerrgroup, it will be reported
-// properly over the Group's error channel.
+// TestWorkerError confirms that if work returns an error that isn't associated with the ctxerrpool, it will be reported
+// properly over the Pool's error channel.
 func TestWorkerError(t *testing.T) {
 
 	// Create an error that should be sent back async.
@@ -500,7 +500,7 @@ func TestWorkerError(t *testing.T) {
 	wg.Add(1)
 
 	// Create a worker pool with 1 worker.
-	pool := ctxerrgroup.New(1, func(pool ctxerrgroup.Group, err error) {
+	pool := ctxerrpool.New(1, func(pool ctxerrpool.Pool, err error) {
 		defer wg.Done()
 
 		// This test case should have no error.

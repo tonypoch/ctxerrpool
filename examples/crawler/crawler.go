@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/MicahParks/ctxerrgroup"
+	"github.com/MicahParks/ctxerrpool"
 )
 
 const (
@@ -33,7 +33,7 @@ func createContext() (context.Context, context.CancelFunc) {
 }
 
 // handleHref takes in an href tag and adds it to the upcoming work for the crawler.
-func handleHref(httpClient *http.Client, l *log.Logger, match []byte, group ctxerrgroup.Group, startU *url.URL) {
+func handleHref(httpClient *http.Client, l *log.Logger, match []byte, pool ctxerrpool.Pool, startU *url.URL) {
 
 	// Get the href's content as an absolute URL.
 	aTag := string(match)
@@ -52,15 +52,15 @@ func handleHref(httpClient *http.Client, l *log.Logger, match []byte, group ctxe
 	// Create a context for the next web crawling request.
 	workerCtx, workerCancel := createContext() // Be careful about shadowing variable names.
 
-	// Tell the worker group to crawl to the next page.
+	// Tell the worker pool to crawl to the next page.
 	//
 	// This is an example of how to create a work function via an anonymous function closure.
-	go group.AddWorkItem(workerCtx, workerCancel, func(workCtx context.Context) error {
+	go pool.AddWorkItem(workerCtx, workerCancel, func(workCtx context.Context) error {
 
 		// Do the HTTP request and start crawling. Respect the given context.
 		//
 		// Make sure to use workCtx from anonymous function argument.
-		if err := crawl(workCtx, httpClient, l, group, nextU.String()); err != nil {
+		if err := crawl(workCtx, httpClient, l, pool, nextU.String()); err != nil {
 			return err
 		}
 
@@ -81,20 +81,20 @@ func main() {
 	startURL := "http://golang.org"
 
 	// Create an error handler to log errors.
-	var errorHandler ctxerrgroup.ErrorHandler
-	errorHandler = func(group ctxerrgroup.Group, err error) {
+	var errorHandler ctxerrpool.ErrorHandler
+	errorHandler = func(pool ctxerrpool.Pool, err error) {
 		l.Printf("An error occurred: \"%v\".\n", err)
 	}
 
-	// Create a worker group with 4 workers.
-	group := ctxerrgroup.New(4, errorHandler)
+	// Create a worker pool with 4 workers.
+	pool := ctxerrpool.New(4, errorHandler)
 
 	// Create the work function via a closure.
-	var work ctxerrgroup.Work
+	var work ctxerrpool.Work
 	work = func(ctx context.Context) (err error) {
 
 		// Do the HTTP request and start crawling. Respect the given context.
-		if err := crawl(ctx, httpClient, l, group, startURL); err != nil {
+		if err := crawl(ctx, httpClient, l, pool, startURL); err != nil {
 			return err
 		}
 
@@ -105,17 +105,17 @@ func main() {
 	ctx, cancel := createContext()
 
 	// Start the scraper.
-	group.AddWorkItem(ctx, cancel, work)
+	pool.AddWorkItem(ctx, cancel, work)
 
-	// Wait for the group to die or for the allowed amount of time to pass.
+	// Wait for the pool to die or for the allowed amount of time to pass.
 	select {
-	case <-group.Death():
+	case <-pool.Death():
 	case <-time.After(crawlDuration):
 		l.Println("This isn't meant to be a real crawler.")
 	}
 }
 
-func crawl(ctx context.Context, httpClient *http.Client, l *log.Logger, group ctxerrgroup.Group, urlString string) (err error) {
+func crawl(ctx context.Context, httpClient *http.Client, l *log.Logger, pool ctxerrpool.Pool, urlString string) (err error) {
 
 	// Make a url.Url from the given string.
 	var startU *url.URL
@@ -150,7 +150,7 @@ func crawl(ctx context.Context, httpClient *http.Client, l *log.Logger, group ct
 
 		// For every match, get its link and crawl to it.
 		for _, match := range matches {
-			handleHref(httpClient, l, match, group, startU)
+			handleHref(httpClient, l, match, pool, startU)
 		}
 	}
 

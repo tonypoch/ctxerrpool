@@ -1,10 +1,10 @@
-package ctxerrgroup
+package ctxerrpool
 
 import (
 	"context"
 )
 
-// dead determines if the Group is dead.
+// dead determines if the Pool is dead.
 func dead(death <-chan struct{}) bool {
 	select {
 	case <-death:
@@ -24,7 +24,7 @@ func expired(ctx context.Context) error {
 	}
 }
 
-// finished cancels the context and decrements the wait group only once. It should be called when the worker is no
+// finished cancels the context and decrements the wait pool only once. It should be called when the worker is no
 // longer working on this workItem.
 func (item *workItem) finished() {
 	item.mux.Lock()

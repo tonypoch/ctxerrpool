@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/MicahParks/ctxerrgroup"
+	"github.com/MicahParks/ctxerrpool"
 )
 
 func main() {
@@ -25,7 +25,7 @@ func main() {
 	urlString := "http://golang.org"
 
 	// Create the work function via a closure.
-	var work ctxerrgroup.Work
+	var work ctxerrpool.Work
 	work = func(ctx context.Context) (err error) {
 
 		// Do the HTTP request, respect the given context.
@@ -41,27 +41,27 @@ func main() {
 	}
 
 	// Create an error handler to log errors.
-	var errorHandler ctxerrgroup.ErrorHandler
-	errorHandler = func(group ctxerrgroup.Group, err error) {
+	var errorHandler ctxerrpool.ErrorHandler
+	errorHandler = func(pool ctxerrpool.Pool, err error) {
 		l.Printf("An error occurred: \"%v\".\n", err)
 	}
 
-	// Create a worker group with 1 worker.
-	group := ctxerrgroup.New(1, errorHandler)
+	// Create a worker pool with 1 worker.
+	pool := ctxerrpool.New(1, errorHandler)
 
 	// Create a context for a some work.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 
-	// Give the group some work to do.
-	group.AddWorkItem(ctx, cancel, work)
+	// Give the pool some work to do.
+	pool.AddWorkItem(ctx, cancel, work)
 
-	// Wait for the worker group to be done working.
-	group.Wait()
+	// Wait for the worker pool to be done working.
+	pool.Wait()
 
-	// Kill the worker group when done using it.
+	// Kill the worker pool when done using it.
 	//
 	// This isn't required here, because the main goroutine is about to return, but is typically a good idea.
-	group.Kill()
+	pool.Kill()
 }
 
 // makeRequest performs an HTTP GET request to the given URL using the given HTTP client. It will print the output to

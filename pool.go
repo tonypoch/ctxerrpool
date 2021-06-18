@@ -1,4 +1,4 @@
-package ctxerrgroup
+package ctxerrpool
 
 import (
 	"context"
@@ -6,27 +6,27 @@ import (
 )
 
 // ErrorHandler is a function that receives an error and handles it.
-type ErrorHandler func(group Group, err error)
+type ErrorHandler func(pool Pool, err error)
 
-// Group is the way to control a group of worker goroutines that understand context.Context and error handling.
-type Group struct {
+// Pool is the way to control a pool of worker goroutines that understand context.Context and error handling.
+type Pool struct {
 	death   chan struct{}
 	do      chan<- *workItem
 	errChan chan error
 	wg      *sync.WaitGroup
 }
 
-// New creates a new Group.
-func New(workers uint, errorHandler ErrorHandler) Group {
+// New creates a new Pool.
+func New(workers uint, errorHandler ErrorHandler) Pool {
 
-	// Create the required channels and wait group.
+	// Create the required channels and wait pool.
 	death := make(chan struct{})
 	do := make(chan *workItem)
 	errChan := make(chan error)
 	wg := &sync.WaitGroup{}
 
-	// Make the Group.
-	group := Group{
+	// Make the Pool.
+	pool := Pool{
 		death:   death,
 		do:      do,
 		errChan: errChan,
@@ -34,7 +34,7 @@ func New(workers uint, errorHandler ErrorHandler) Group {
 	}
 
 	// Handle all outgoing errors async.
-	go group.handleErrors(errorHandler)
+	go pool.handleErrors(errorHandler)
 
 	// Create the desired number of workers and start them.
 	for i := uint(0); i < workers; i++ {
@@ -46,25 +46,25 @@ func New(workers uint, errorHandler ErrorHandler) Group {
 		go w.start()
 	}
 
-	return group
+	return pool
 }
 
-// Death returns a channel that will close when the Group has died.
-func (g Group) Death() <-chan struct{} {
+// Death returns a channel that will close when the Pool has died.
+func (g Pool) Death() <-chan struct{} {
 	return g.death
 }
 
 // AddWorkItem takes in context information and a Work function and gives it to a worker. This can block if all workers
 // are busy and the work item buffer is full. This function will block if no workers are ready. Call with the go keyword
 // to launch it in another goroutine to guarantee no blocking.
-func (g Group) AddWorkItem(ctx context.Context, cancel context.CancelFunc, work Work) {
+func (g Pool) AddWorkItem(ctx context.Context, cancel context.CancelFunc, work Work) {
 
-	// Check to make sure the group isn't dead on arrival.
+	// Check to make sure the pool isn't dead on arrival.
 	if g.Dead() {
 		return
 	}
 
-	// Increment the wait group.
+	// Increment the wait pool.
 	g.wg.Add(1)
 
 	// Create the work item.
@@ -79,50 +79,50 @@ func (g Group) AddWorkItem(ctx context.Context, cancel context.CancelFunc, work 
 	g.sendWorkItem(ctx, item) // This will block if no worker is ready and the work item buffer is full.
 }
 
-// Dead determines if the group is dead.
-func (g Group) Dead() bool {
+// Dead determines if the pool is dead.
+func (g Pool) Dead() bool {
 	return dead(g.death)
 }
 
 // Done mimics the functionality of the context.Context Done method. It returns a channel that will close when all
-// given work has been completed or when the group dies.
-func (g Group) Done() <-chan struct{} {
+// given work has been completed or when the pool dies.
+func (g Pool) Done() <-chan struct{} {
 
 	// Make a channel to close.
 	c := make(chan struct{})
 
-	// Launch a goroutine that will close the channel when all work has been completed or the group dies.
+	// Launch a goroutine that will close the channel when all work has been completed or the pool dies.
 	go g.mimic(c)
 
 	return c
 }
 
 // Kill tells all the worker goroutines and work items to end.
-func (g Group) Kill() {
+func (g Pool) Kill() {
 	close(g.death)
 }
 
 // Wait mimics the functionality of the sync.WaitGroup Wait method. It returns when all given work has been completed or
-// when the group dies.
-func (g Group) Wait() {
+// when the pool dies.
+func (g Pool) Wait() {
 	g.mimic(nil)
 }
 
 // handleErrors is meant to be a goroutine that will handle all errors returned from work items. It takes in an error
 // handler function and an async boolean. If the async boolean is true, all errors returned from work items will be
 // handled in their own goroutine.
-func (g Group) handleErrors(handler ErrorHandler) {
+func (g Pool) handleErrors(handler ErrorHandler) {
 	for {
 		select {
 
-		// Clean up the goroutine when the group has died.
+		// Clean up the goroutine when the pool has died.
 		case <-g.Death():
 			return
 
 		// Handle the error that were not handled by work items.
 		case err := <-g.errChan:
 
-			// Check to make sure the group isn't dead and this case was selected.
+			// Check to make sure the pool isn't dead and this case was selected.
 			if g.Dead() {
 				return
 			}
@@ -133,9 +133,9 @@ func (g Group) handleErrors(handler ErrorHandler) {
 	}
 }
 
-// mimic waits for all workers to be done working or for the group to die. Close the given channel, if any, when one
+// mimic waits for all workers to be done working or for the pool to die. Close the given channel, if any, when one
 // condition occurs.
-func (g Group) mimic(c chan struct{}) {
+func (g Pool) mimic(c chan struct{}) {
 
 	// Close the channel, if any, after the function returns.
 	defer func() {
@@ -144,7 +144,7 @@ func (g Group) mimic(c chan struct{}) {
 		}
 	}()
 
-	// Check to see if the group is already dead.
+	// Check to see if the pool is already dead.
 	if g.Dead() {
 		return
 	}
@@ -166,7 +166,7 @@ func (g Group) mimic(c chan struct{}) {
 }
 
 // sendWorkItem adds to the work item channel's buffer or send the work directly to a worker if there is no buffer.
-func (g Group) sendWorkItem(ctx context.Context, item *workItem) {
+func (g Pool) sendWorkItem(ctx context.Context, item *workItem) {
 
 	// Make sure the context is not dead on arrival.
 	if err := expired(item.ctx); err != nil {

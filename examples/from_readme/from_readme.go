@@ -8,19 +8,19 @@ import (
 	"os"
 	"time"
 
-	"github.com/MicahParks/ctxerrgroup"
+	"github.com/MicahParks/ctxerrpool"
 )
 
 func main() {
 
 	// Create an error handler that logs all errors.
-	var errorHandler ctxerrgroup.ErrorHandler
-	errorHandler = func(group ctxerrgroup.Group, err error) {
+	var errorHandler ctxerrpool.ErrorHandler
+	errorHandler = func(pool ctxerrpool.Pool, err error) {
 		log.Printf("An error occurred. Error: \"%s\".\n", err.Error())
 	}
 
-	// Create a worker group with 4 workers.
-	group := ctxerrgroup.New(4, errorHandler)
+	// Create a worker pool with 4 workers.
+	pool := ctxerrpool.New(4, errorHandler)
 
 	// Create some variables to inherit through a closure.
 	httpClient := &http.Client{}
@@ -28,7 +28,7 @@ func main() {
 	logger := log.New(os.Stdout, "status codes: ", 0)
 
 	// Create the worker function.
-	var work ctxerrgroup.Work
+	var work ctxerrpool.Work
 	work = func(ctx context.Context) (err error) {
 
 		// Create the HTTP request.
@@ -55,10 +55,10 @@ func main() {
 		// Create a context for the work.
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 
-		// Send the work to the group.
-		group.AddWorkItem(ctx, cancel, work)
+		// Send the work to the pool.
+		pool.AddWorkItem(ctx, cancel, work)
 	}
 
-	// Wait for the group to finish.
-	group.Wait()
+	// Wait for the pool to finish.
+	pool.Wait()
 }

@@ -1,4 +1,4 @@
-package ctxerrgroup
+package ctxerrpool
 
 import (
 	"context"
@@ -26,7 +26,7 @@ type workItem struct {
 	work        Work
 }
 
-// worker consumes work items while from the Group and sends unhandled errors back to the Group error handler.
+// worker consumes work items while from the Pool and sends unhandled errors back to the Pool error handler.
 type worker struct {
 	death   chan struct{}
 	do      <-chan *workItem
@@ -65,7 +65,7 @@ func (w worker) start() {
 // finished.
 func (w worker) work(item workItem) {
 
-	// Check to make sure the group didn't die and work case was selected randomly.
+	// Check to make sure the pool didn't die and work case was selected randomly.
 	if dead(w.death) {
 		return
 	}
