@@ -42,7 +42,7 @@ func main() {
 
 		// Create the HTTP request.
 		var req *http.Request
-		if req, err = http.NewRequestWithContext(ctx, http.MethodGet, u, bytes.NewReader([]byte{})); err != nil {
+		if req, err = http.NewRequestWithContext(ctx, http.MethodGet, u, bytes.NewReader(nil)); err != nil {
 			return err
 		}
 
@@ -63,9 +63,10 @@ func main() {
 
 		// Create a context for the work.
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
 
 		// Send the work to the pool.
-		pool.AddWorkItem(ctx, cancel, work)
+		pool.AddWorkItem(ctx, work)
 	}
 
 	// Wait for the pool to finish.
@@ -171,7 +172,7 @@ work = func(ctx context.Context) (err error) {
 
 	// Create the HTTP request.
 	var req *http.Request
-	if req, err = http.NewRequestWithContext(ctx, http.MethodGet, u, bytes.NewReader([]byte{})); err != nil {
+	if req, err = http.NewRequestWithContext(ctx, http.MethodGet, u, bytes.NewReader(nil)); err != nil {
 		return err
 	}
 
@@ -196,7 +197,7 @@ work = func(ctx context.Context) (err error) {
 
 	// Create the HTTP request.
 	var req *http.Request
-	if req, err = http.NewRequest(http.MethodGet, u, bytes.NewReader([]byte{})); err != nil {
+	if req, err = http.NewRequest(http.MethodGet, u, bytes.NewReader(nil)); err != nil {
 		return err
 	}
 
@@ -223,11 +224,11 @@ logger := log.New(os.Stdout, "status codes: ", 0)
 
 // Create the worker function.
 var work ctxerrpool.Work
-work = func(ctx context.Context) (err error) {
+work = func(workCtx context.Context) (err error) {
 
 	// Create the HTTP request.
 	var req *http.Request
-	if req, err = http.NewRequestWithContext(ctx, http.MethodGet, u, bytes.NewReader([]byte{})); err != nil {
+	if req, err = http.NewRequestWithContext(workCtx, http.MethodGet, u, bytes.NewReader(nil)); err != nil {
 		return err
 	}
 
@@ -246,31 +247,34 @@ work = func(ctx context.Context) (err error) {
 
 ### Create a context
 ---
-`work item`s and contexts have a 1:1 relationship. Each context's cancel function is called on the completion of its
-`work item` completion. Never send a `work item` with a context that has been used before.
+contexts and `work item`s have a one-to-many relationship. Individual `work item`s can share contexts and others can act
+have unique contexts. This is helpful when a timeout for a `work item` is supposed to start right before the work
+starts.
 
-Here is an example of what *not* to do:
+Here is an example of multiple work items sharing a context:
 ```go
-// This context will cause up to 4 jobs to fail.
+// All these work items must be completed within 1 second.
 ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+defer cancel()
 
 // Do the work 16 times.
 for i := 0; i < 16; i++ {
 
 	// Send the work to the pool.
-	pool.AddWorkItem(ctx, cancel, work)
+	pool.AddWorkItem(ctx, work)
 }
 ```
-Instead, create the context in the loop and do not shadow a context variable from out of scope.
+Here is an example of every work item being able to have 1 second of run time.
 ```go
 // Do the work 16 times.
 for i := 0; i < 16; i++ {
 
-	// Create a context for the work.
+	// Let the work go for a max of 1 second.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
 
 	// Send the work to the pool.
-	pool.AddWorkItem(ctx, cancel, work)
+	pool.AddWorkItem(ctx, work)
 }
 ```
 
@@ -279,7 +283,7 @@ for i := 0; i < 16; i++ {
 Adding, in its simplest form. Was addressed above on these lines.
 ```go
 // Send the work to the pool.
-pool.AddWorkItem(ctx, cancel, work)
+pool.AddWorkItem(ctx, work)
 ```
 
 Any time the `AddWorkItem` method is called, a new `work item` will be taken and performed by the `worker pool`.

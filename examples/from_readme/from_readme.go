@@ -33,7 +33,7 @@ func main() {
 
 		// Create the HTTP request.
 		var req *http.Request
-		if req, err = http.NewRequestWithContext(ctx, http.MethodGet, u, bytes.NewReader([]byte{})); err != nil {
+		if req, err = http.NewRequestWithContext(ctx, http.MethodGet, u, bytes.NewReader(nil)); err != nil {
 			return err
 		}
 
