@@ -83,26 +83,26 @@ func main() {
 |`worker function`|A function matching a specific signature that can be run by a `worker`.                                             |
 |`work item`      |A `worker function` plus a unique `context.Context` and `context.CancelFunc` pair that will be run once by a worker.|
 
-# Differences between [`golang.org/x/sync/errpool`](https://pkg.go.dev/golang.org/x/sync/errpool)
+# Differences between [`golang.org/x/sync/errgroup`](https://pkg.go.dev/golang.org/x/sync/errgroup)
 
 This package `github.com/MicahParks/ctxerrpool` and
-[`golang.org/x/sync/errpool`](https://pkg.go.dev/golang.org/x/sync/errpool) are similar, but serve different use
+[`golang.org/x/sync/errgroup`](https://pkg.go.dev/golang.org/x/sync/errgroup) are similar, but serve different use
 cases.
 
-The current overview for `errpool` is:
+The current overview for `errgroup` is:
 
-> Package errpool provides synchronization, error propagation, and Context cancelation for pools of goroutines working on subtasks of a common task.
+> Package errgroup provides synchronization, error propagation, and Context cancelation for pools of goroutines working on subtasks of a common task.
 
-In terms of Context, this is to say that each pool is associated to one context. Another key point is: all
-tasks (`work item`s) for a pool are subtasks of a common task.
+In terms of Context, this is to say that each group is associated to one context. Another key point is: all
+tasks (`work item`s) for a group are subtasks of a common task.
 
-In contrast, `ctxerrpool` makes `work item`s and Contexts have a one to one relationship. `worker function`s do not
+In contrast, `ctxerrpool` makes contextes and `work item`s and have a many-to-one relationship. `worker function`s do not
 need to be subtasks of a common task as one of the primary features of the pool is to behave as a worker pool. I find
 worker pools helpful in performing work asynchronously without worrying about creating too many goroutines.
 
-|             |Purpose                   |one to one with `context.Context`|errors          |
-|-------------|--------------------------|---------------------------------|----------------|
-|`errpool`   |subtasks of a common task |`errpool.Pool`                 |Propagation     |
+|             |Purpose                  |one to one with `context.Context`|errors          |
+|-------------|-------------------------|---------------------------------|----------------|
+|`errpool`   |subtasks of a common task |`errpool.Pool`                   |Propagation     |
 |`ctxerrpool`|goroutines as worker pools|`work item`                      |Handler function|
 
 # Benefits
