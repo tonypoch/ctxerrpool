@@ -56,9 +56,10 @@ func TestDeathDeadOnArrival(t *testing.T) {
 
 	// Create a context.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
 
 	// Do some work with the pool.
-	pool.AddWorkItem(ctx, cancel, func(workCtx context.Context) error {
+	pool.AddWorkItem(ctx, func(workCtx context.Context) error {
 		t.Fail() // This line should never run.
 		return nil
 	})
@@ -87,13 +88,14 @@ func TestDeathDuring(t *testing.T) {
 
 	// Create a context.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
 
 	// Create a wait pool that indicates the work has started.
 	workWg := &sync.WaitGroup{}
 	workWg.Add(1)
 
 	// Do some work with the pool.
-	pool.AddWorkItem(ctx, cancel, func(workCtx context.Context) error {
+	pool.AddWorkItem(ctx, func(workCtx context.Context) error {
 		workWg.Done()
 
 		// Respect given context.
@@ -145,13 +147,14 @@ func TestDone(t *testing.T) {
 
 	// Create a context.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
 
 	// Create a boolean that indicates the work was done and a mutex for it.
 	mux := &sync.Mutex{}
 	done := false
 
 	// Do some work with the pool.
-	pool.AddWorkItem(ctx, cancel, func(workCtx context.Context) error {
+	pool.AddWorkItem(ctx, func(workCtx context.Context) error {
 		mux.Lock()
 		defer mux.Unlock()
 		done = true
@@ -193,9 +196,10 @@ func TestErrCantDo(t *testing.T) {
 
 	// Create a context for the job.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*50)
+	defer cancel()
 
 	// Give the worker pool some work that will never get run.
-	pool.AddWorkItem(ctx, cancel, func(workCtx context.Context) error {
+	pool.AddWorkItem(ctx, func(workCtx context.Context) error {
 		return nil
 	})
 
@@ -225,9 +229,10 @@ func TestErrCantDoDeadOnArrival(t *testing.T) {
 
 	// Create a context for the job that will be expired on arrival.
 	ctx, cancel := context.WithTimeout(context.Background(), 0)
+	defer cancel()
 
 	// Get a worker to do some work so the main loop is entered.
-	pool.AddWorkItem(ctx, cancel, func(workCtx context.Context) error {
+	pool.AddWorkItem(ctx, func(workCtx context.Context) error {
 		return nil
 	})
 
@@ -257,9 +262,10 @@ func TestErrorTimeout(t *testing.T) {
 
 	// Create a context for the job that will time out.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*50)
+	defer cancel()
 
 	// Get a worker to sleep for a second, but async wait for its context to expire.
-	pool.AddWorkItem(ctx, cancel, func(workCtx context.Context) error {
+	pool.AddWorkItem(ctx, func(workCtx context.Context) error {
 		var err error
 		select {
 		case <-time.After(time.Second):
@@ -297,9 +303,10 @@ func TestErrorTimeoutBadWork(t *testing.T) {
 
 	// Create a context for the job that will time out.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*50)
+	defer cancel()
 
 	// Get a worker to sleep for a second.
-	pool.AddWorkItem(ctx, cancel, func(workCtx context.Context) error {
+	pool.AddWorkItem(ctx, func(workCtx context.Context) error {
 
 		// Do not respect workCtx.
 		select {
@@ -337,9 +344,10 @@ func TestKill(t *testing.T) {
 
 	// Create a context for the job that will time out.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
 
 	// Get a worker to sleep for a second, but async wait for its context to expire.
-	pool.AddWorkItem(ctx, cancel, func(workCtx context.Context) error {
+	pool.AddWorkItem(ctx, func(workCtx context.Context) error {
 		var err error
 		select {
 		case <-time.After(time.Second):
@@ -384,18 +392,20 @@ func TestMultiWorker(t *testing.T) {
 
 	// Two contexts. One for each job.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
 	ctx2, cancel2 := context.WithTimeout(context.Background(), time.Second)
+	defer cancel2()
 
 	// Grab the current time.
 	start := time.Now()
 
 	// Get both workers to sleep for 50 millisecond each. If it takes 100 or more milliseconds total, only one worker
 	// was used.
-	pool.AddWorkItem(ctx, cancel, func(workCtx context.Context) error {
+	pool.AddWorkItem(ctx, func(workCtx context.Context) error {
 		time.Sleep(time.Millisecond * 50)
 		return nil
 	})
-	pool.AddWorkItem(ctx2, cancel2, func(workCtx context.Context) error {
+	pool.AddWorkItem(ctx2, func(workCtx context.Context) error {
 		time.Sleep(time.Millisecond * 50)
 		return nil
 	})
@@ -431,9 +441,10 @@ func TestNew(t *testing.T) {
 
 	// Create a context.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
 
 	// Do some work with the pool.
-	pool.AddWorkItem(ctx, cancel, func(workCtx context.Context) error {
+	pool.AddWorkItem(ctx, func(workCtx context.Context) error {
 		return nil
 	})
 
@@ -460,13 +471,14 @@ func TestWait(t *testing.T) {
 
 	// Create a context.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
 
 	// Create a boolean that indicates the work was done and a mutex for it.
 	mux := &sync.Mutex{}
 	done := false
 
 	// Do some work with the pool.
-	pool.AddWorkItem(ctx, cancel, func(workCtx context.Context) error {
+	pool.AddWorkItem(ctx, func(workCtx context.Context) error {
 		mux.Lock()
 		defer mux.Unlock()
 		done = true
@@ -512,9 +524,10 @@ func TestWorkerError(t *testing.T) {
 
 	// Create a context for the job.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
 
 	// Get a worker to give a custom error async.
-	pool.AddWorkItem(ctx, cancel, func(workCtx context.Context) error {
+	pool.AddWorkItem(ctx, func(workCtx context.Context) error {
 		return customErr
 	})
 

@@ -51,9 +51,10 @@ func main() {
 
 	// Create a context for a some work.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
 
 	// Give the pool some work to do.
-	pool.AddWorkItem(ctx, cancel, work)
+	pool.AddWorkItem(ctx, work)
 
 	// Wait for the worker pool to be done working.
 	pool.Wait()

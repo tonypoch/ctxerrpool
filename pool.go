@@ -57,7 +57,7 @@ func (g Pool) Death() <-chan struct{} {
 // AddWorkItem takes in context information and a Work function and gives it to a worker. This can block if all workers
 // are busy and the work item buffer is full. This function will block if no workers are ready. Call with the go keyword
 // to launch it in another goroutine to guarantee no blocking.
-func (g Pool) AddWorkItem(ctx context.Context, cancel context.CancelFunc, work Work) {
+func (g Pool) AddWorkItem(ctx context.Context, work Work) {
 
 	// Check to make sure the pool isn't dead on arrival.
 	if g.Dead() {
@@ -67,16 +67,19 @@ func (g Pool) AddWorkItem(ctx context.Context, cancel context.CancelFunc, work W
 	// Increment the wait pool.
 	g.wg.Add(1)
 
+	// Create a cancellable context.
+	workCtx, cancel := context.WithCancel(ctx)
+
 	// Create the work item.
 	item := &workItem{
 		cancel: cancel,
-		ctx:    ctx,
+		ctx:    workCtx,
 		mux:    &sync.Mutex{},
 		wg:     g.wg,
 		work:   work,
 	}
 
-	g.sendWorkItem(ctx, item) // This will block if no worker is ready and the work item buffer is full.
+	g.sendWorkItem(workCtx, item) // This will block if no worker is ready and the work item buffer is full.
 }
 
 // Dead determines if the pool is dead.

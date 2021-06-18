@@ -50,12 +50,13 @@ func handleHref(httpClient *http.Client, l *log.Logger, match []byte, pool ctxer
 	}
 
 	// Create a context for the next web crawling request.
-	workerCtx, workerCancel := createContext() // Be careful about shadowing variable names.
+	workerCtx, _ := createContext() // Be careful about shadowing variable names.
+	// It's important to use the context.CancelFunc in production due to resource leaks.
 
 	// Tell the worker pool to crawl to the next page.
 	//
 	// This is an example of how to create a work function via an anonymous function closure.
-	go pool.AddWorkItem(workerCtx, workerCancel, func(workCtx context.Context) error {
+	go pool.AddWorkItem(workerCtx, func(workCtx context.Context) error {
 
 		// Do the HTTP request and start crawling. Respect the given context.
 		//
@@ -103,9 +104,10 @@ func main() {
 
 	// Create a context for the first job.
 	ctx, cancel := createContext()
+	defer cancel()
 
 	// Start the scraper.
-	pool.AddWorkItem(ctx, cancel, work)
+	pool.AddWorkItem(ctx, work)
 
 	// Wait for the pool to die or for the allowed amount of time to pass.
 	select {

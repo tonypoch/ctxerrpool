@@ -45,9 +45,10 @@ func main() {
 
 	// Create a context for the work.
 	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	// Send the work to the pool.
-	pool.AddWorkItem(ctx, cancel, work)
+	pool.AddWorkItem(ctx, work)
 
 	// Wait for the work to start.
 	wg.Wait()
