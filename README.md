@@ -96,7 +96,7 @@ The current overview for `errgroup` is:
 In terms of Context, this is to say that each group is associated to one context. Another key point is: all
 tasks (`work item`s) for a group are subtasks of a common task.
 
-In contrast, `ctxerrpool` makes contextes and `work item`s and have a many-to-one relationship. `worker function`s do not
+In contrast, `ctxerrpool` makes `work item`s and contexts have a many-to-one relationship. `worker function`s do not
 need to be subtasks of a common task as one of the primary features of the pool is to behave as a worker pool. I find
 worker pools helpful in performing work asynchronously without worrying about creating too many goroutines.
 
@@ -247,7 +247,7 @@ work = func(workCtx context.Context) (err error) {
 
 ### Create a context
 ---
-contexts and `work item`s have a one-to-many relationship. Individual `work item`s can share contexts and others can act
+`work item`s and contexts have a many-to-one relationship. Individual `work item`s can share contexts and others can act
 have unique contexts. This is helpful when a timeout for a `work item` is supposed to start right before the work
 starts.
 
