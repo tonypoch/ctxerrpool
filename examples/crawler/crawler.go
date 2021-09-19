@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/MicahParks/ctxerrpool"
+	"ctxerrpool"
 )
 
 const (
@@ -56,17 +56,17 @@ func handleHref(httpClient *http.Client, l *log.Logger, match []byte, pool ctxer
 	// Tell the worker pool to crawl to the next page.
 	//
 	// This is an example of how to create a work function via an anonymous function closure.
-	go pool.AddWorkItem(workerCtx, func(workCtx context.Context) error {
+	go pool.AddWorkItem(workerCtx, func(workCtx context.Context, data interface{}) error {
 
 		// Do the HTTP request and start crawling. Respect the given context.
 		//
 		// Make sure to use workCtx from anonymous function argument.
-		if err := crawl(workCtx, httpClient, l, pool, nextU.String()); err != nil {
+		if err := crawl(workCtx, httpClient, l, pool, data.(string)); err != nil {
 			return err
 		}
 
 		return nil
-	})
+	}, nextU.String())
 }
 
 // Don't make a web crawler like this, use github.com/gocolly/colly.
@@ -92,10 +92,10 @@ func main() {
 
 	// Create the work function via a closure.
 	var work ctxerrpool.Work
-	work = func(ctx context.Context) (err error) {
+	work = func(ctx context.Context, data interface{}) (err error) {
 
 		// Do the HTTP request and start crawling. Respect the given context.
-		if err := crawl(ctx, httpClient, l, pool, startURL); err != nil {
+		if err := crawl(ctx, httpClient, l, pool, data.(string)); err != nil {
 			return err
 		}
 
@@ -107,7 +107,7 @@ func main() {
 	defer cancel()
 
 	// Start the scraper.
-	pool.AddWorkItem(ctx, work)
+	pool.AddWorkItem(ctx, work, startURL)
 
 	// Wait for the pool to die or for the allowed amount of time to pass.
 	select {

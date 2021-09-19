@@ -5,7 +5,7 @@ import (
 	"log"
 	"sync"
 
-	"github.com/MicahParks/ctxerrpool"
+	"ctxerrpool"
 )
 
 func main() {
@@ -34,7 +34,7 @@ func main() {
 	// Create some work that respects it's given context. Give it a wait pool to decrement so the worker pool actually
 	// starts the work.
 	var work ctxerrpool.Work
-	work = func(ctx context.Context) (err error) {
+	work = func(ctx context.Context, data interface{}) (err error) {
 		wg.Done()
 
 		select {
@@ -48,7 +48,7 @@ func main() {
 	defer cancel()
 
 	// Send the work to the pool.
-	pool.AddWorkItem(ctx, work)
+	pool.AddWorkItem(ctx, work, "cancelFunc")
 
 	// Wait for the work to start.
 	wg.Wait()

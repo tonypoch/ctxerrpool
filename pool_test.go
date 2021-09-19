@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/MicahParks/ctxerrpool"
+	"ctxerrpool"
 )
 
 // TestDeathBeforeWork confirms that a worker pool can be killed before doing any work safely.
@@ -59,10 +59,10 @@ func TestDeathDeadOnArrival(t *testing.T) {
 	defer cancel()
 
 	// Do some work with the pool.
-	pool.AddWorkItem(ctx, func(workCtx context.Context) error {
+	pool.AddWorkItem(ctx, func(workCtx context.Context, data interface{}) error {
 		t.Fail() // This line should never run.
 		return nil
-	})
+	}, "")
 
 	// Wait for the worker pool and error.
 	pool.Wait()
@@ -95,7 +95,7 @@ func TestDeathDuring(t *testing.T) {
 	workWg.Add(1)
 
 	// Do some work with the pool.
-	pool.AddWorkItem(ctx, func(workCtx context.Context) error {
+	pool.AddWorkItem(ctx, func(workCtx context.Context, data interface{}) error {
 		workWg.Done()
 
 		// Respect given context.
@@ -116,7 +116,7 @@ func TestDeathDuring(t *testing.T) {
 		}
 
 		return nil
-	})
+	}, "test")
 
 	// Let the program set up the pool and start working.
 	workWg.Wait()
@@ -154,12 +154,12 @@ func TestDone(t *testing.T) {
 	done := false
 
 	// Do some work with the pool.
-	pool.AddWorkItem(ctx, func(workCtx context.Context) error {
+	pool.AddWorkItem(ctx, func(workCtx context.Context, data interface{}) error {
 		mux.Lock()
 		defer mux.Unlock()
 		done = true
 		return nil
-	})
+	}, "test")
 
 	<-pool.Done()
 
@@ -199,9 +199,9 @@ func TestErrCantDo(t *testing.T) {
 	defer cancel()
 
 	// Give the worker pool some work that will never get run.
-	pool.AddWorkItem(ctx, func(workCtx context.Context) error {
+	pool.AddWorkItem(ctx, func(workCtx context.Context, data interface{}) error {
 		return nil
-	})
+	}, "test")
 
 	// Wait for the worker pool and error.
 	wg.Wait()
@@ -232,9 +232,9 @@ func TestErrCantDoDeadOnArrival(t *testing.T) {
 	defer cancel()
 
 	// Get a worker to do some work so the main loop is entered.
-	pool.AddWorkItem(ctx, func(workCtx context.Context) error {
+	pool.AddWorkItem(ctx, func(workCtx context.Context, data interface{}) error {
 		return nil
-	})
+	}, "")
 
 	// Wait for the worker pool and error.
 	wg.Wait()
@@ -265,7 +265,7 @@ func TestErrorTimeout(t *testing.T) {
 	defer cancel()
 
 	// Get a worker to sleep for a second, but async wait for its context to expire.
-	pool.AddWorkItem(ctx, func(workCtx context.Context) error {
+	pool.AddWorkItem(ctx, func(workCtx context.Context, data interface{}) error {
 		var err error
 		select {
 		case <-time.After(time.Second):
@@ -274,7 +274,7 @@ func TestErrorTimeout(t *testing.T) {
 			err = workCtx.Err()
 		}
 		return err
-	})
+	}, "test")
 
 	// Wait for the worker pool and error.
 	pool.Wait()
@@ -306,7 +306,7 @@ func TestErrorTimeoutBadWork(t *testing.T) {
 	defer cancel()
 
 	// Get a worker to sleep for a second.
-	pool.AddWorkItem(ctx, func(workCtx context.Context) error {
+	pool.AddWorkItem(ctx, func(workCtx context.Context, data interface{}) error {
 
 		// Do not respect workCtx.
 		select {
@@ -314,7 +314,7 @@ func TestErrorTimeoutBadWork(t *testing.T) {
 			t.FailNow()
 		}
 		return nil
-	})
+	}, "test")
 
 	// Wait for the worker pool and error.
 	pool.Wait()
@@ -347,7 +347,7 @@ func TestKill(t *testing.T) {
 	defer cancel()
 
 	// Get a worker to sleep for a second, but async wait for its context to expire.
-	pool.AddWorkItem(ctx, func(workCtx context.Context) error {
+	pool.AddWorkItem(ctx, func(workCtx context.Context, data interface{}) error {
 		var err error
 		select {
 		case <-time.After(time.Second):
@@ -356,7 +356,7 @@ func TestKill(t *testing.T) {
 			err = workCtx.Err()
 		}
 		return err
-	})
+	}, "test")
 
 	// Kill the pool right away.
 	pool.Kill()
@@ -401,14 +401,14 @@ func TestMultiWorker(t *testing.T) {
 
 	// Get both workers to sleep for 50 millisecond each. If it takes 100 or more milliseconds total, only one worker
 	// was used.
-	pool.AddWorkItem(ctx, func(workCtx context.Context) error {
+	pool.AddWorkItem(ctx, func(workCtx context.Context, data interface{}) error {
 		time.Sleep(time.Millisecond * 50)
 		return nil
-	})
-	pool.AddWorkItem(ctx2, func(workCtx context.Context) error {
+	}, "func1")
+	pool.AddWorkItem(ctx2, func(workCtx context.Context, data interface{}) error {
 		time.Sleep(time.Millisecond * 50)
 		return nil
-	})
+	}, "func2")
 
 	// The worker pool is done working.
 	pool.Wait()
@@ -444,9 +444,9 @@ func TestNew(t *testing.T) {
 	defer cancel()
 
 	// Do some work with the pool.
-	pool.AddWorkItem(ctx, func(workCtx context.Context) error {
+	pool.AddWorkItem(ctx, func(workCtx context.Context, data interface{}) error {
 		return nil
-	})
+	}, "test")
 
 	// Wait for the worker pool and error.
 	pool.Wait()
@@ -478,12 +478,12 @@ func TestWait(t *testing.T) {
 	done := false
 
 	// Do some work with the pool.
-	pool.AddWorkItem(ctx, func(workCtx context.Context) error {
+	pool.AddWorkItem(ctx, func(workCtx context.Context, data interface{}) error {
 		mux.Lock()
 		defer mux.Unlock()
 		done = true
 		return nil
-	})
+	}, "test")
 
 	// Wait for all the work to be done.
 	pool.Wait()
@@ -527,9 +527,9 @@ func TestWorkerError(t *testing.T) {
 	defer cancel()
 
 	// Get a worker to give a custom error async.
-	pool.AddWorkItem(ctx, func(workCtx context.Context) error {
+	pool.AddWorkItem(ctx, func(workCtx context.Context, data interface{}) error {
 		return customErr
-	})
+	}, "test")
 
 	// Wait for the expected error.
 	wg.Wait()

@@ -1,3 +1,3 @@
-module github.com/MicahParks/ctxerrpool
+module ctxerrpool
 
-go 1.15
+go 1.17
