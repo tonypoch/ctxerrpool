@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/MicahParks/ctxerrpool"
+	"ctxerrpool"
 )
 
 func main() {
@@ -26,7 +26,7 @@ func main() {
 
 	// Create the work function via a closure.
 	var work ctxerrpool.Work
-	work = func(ctx context.Context) (err error) {
+	work = func(ctx context.Context, data interface{}) (err error) {
 
 		// Do the HTTP request, respect the given context.
 		body, err := makeRequest(ctx, httpClient, urlString)
@@ -54,7 +54,7 @@ func main() {
 	defer cancel()
 
 	// Give the pool some work to do.
-	pool.AddWorkItem(ctx, work)
+	pool.AddWorkItem(ctx, work, "")
 
 	// Wait for the worker pool to be done working.
 	pool.Wait()

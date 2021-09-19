@@ -14,7 +14,7 @@ var (
 )
 
 // Work is a function that utilizes the given context properly and returns an error.
-type Work func(workCtx context.Context) (err error)
+type Work func(workCtx context.Context, data interface{}) (err error)
 
 // workItem holds a function to work on and the context for it.
 type workItem struct {
@@ -24,6 +24,7 @@ type workItem struct {
 	mux         *sync.Mutex
 	wg          *sync.WaitGroup
 	work        Work
+	data        interface{}
 }
 
 // worker consumes work items while from the Pool and sends unhandled errors back to the Pool error handler.
@@ -112,7 +113,7 @@ func (w worker) work(item workItem) {
 
 // doWork actually performs the work item.
 func (w worker) doWork(item workItem, finished chan struct{}, hasCtxErr *bool, muxCtxErr *sync.Mutex) {
-	if err := item.work(item.ctx); err != nil {
+	if err := item.work(item.ctx, item.data); err != nil {
 
 		// If the error is a context error and hasn't been reported already, report it. If it's not a context error,
 		// report it.
